@@ -16,19 +16,20 @@ pio.renderers.default='browser'
 
 colors = plotly.colors.DEFAULT_PLOTLY_COLORS
 
-stock_symbols = ['AMD','INTC','NVDA']
+#stock_symbols = ['AMD','INTC','NVDA']
+stock_symbols = ['F','TSLA']
 
 # test balance sheet
 equities = a.Equities(api_key='296ULICGSB63VL7A',tickers=stock_symbols)
 
-# equities.get_balance_sheets()
+bs = equities.get_balance_sheets()
+print(bs.columns)
 equities.plot_short_term_assets()
 
 # test cash flow
-cf_df = equities.get_cashflow()
-
-print(cf_df.columns)
-equities.plot_cash_flow()
+#cf_df = equities.get_cashflow()
+#print(cf_df.columns)
+#equities.plot_cash_flow()
 
 '''
 cf = equities.get_cashflow()

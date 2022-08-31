@@ -79,7 +79,7 @@ class Equities:
         # TODO add timer between requests based on level of alpha vantage API call volume allowed per minute
         for t in self.tickers:   
             
-            print('----gathering cash flow data for',t)
+            print('----gathering balance sheet data for',t)
                         
             data = self.alpha_vantage_get(function='BALANCE_SHEET',symbol=t)
             
@@ -100,107 +100,103 @@ class Equities:
         return return_df
     
     
-    def plot_cash_flow(self):
+    def plot_subplots(self,plot_type='cash_flow',columns={}):
         
-        # check to see if the balance sheet data has been pulled for this instance of the object
-        # if not get it before continuing
-        if not hasattr(self, 'cash_flow'):
-            self.get_cashflow()
-            
-        fig = plt.subplots.make_subplots(rows=2, cols=2, subplot_titles=("Operating Cash Flow",
-                                                                         "Cap Ex",
-                                                                         'Net Income',
-                                                                         'Payments For Repurchase Of CommonStock'))
+        df = None
         
-        for st in range(0,len(self.tickers)):
+        if plot_type == 'cash_flow':
             
-            s = self.tickers[st]            
-            print(s)
+            # if we haven't populated cash flow data on this instance of the class
+            # go populate
+            if not hasattr(self,'cash_flow'):
+                self.get_cashflow()
+                
+            df = self.cash_flow
+                
+            # if no plot columns were passed use defualt
+            if not columns:
+                columns={'operatingCashflow':'Operating Cash Flow',
+                         'capitalExpenditures':'Cap Ex',
+                         'netIncome':'Net Income',
+                         'paymentsForRepurchaseOfCommonStock':  'Payments For Repurchase Of CommonStock'}
+                
+        
+        if plot_type == 'balance_sheet':
             
+            # if we haven't populated cash flow data on this instance of the class
+            # go populate
+            if not hasattr(self,'balance_sheets'):
+                self.get_balance_sheets()
+                
+            df = self.balance_sheets
+                
+            # if no plot columns were passed use defualt
+            if not columns:
+                columns={'totalCurrentAssets':'Total Current Assets',
+                        'cashAndCashEquivalentsAtCarryingValue': 'Cash and Equivalents',
+                        'inventory':'Inventory',
+                        'currentNetReceivables':'Current Net Recievables',
+                        'totalCurrentLiabilities': 'Current Liabilities'}
+                
+        
+                
+        plt.io.renderers.default='browser'
+        
+        # we always do a max of two columns, rows can change based on the number of columns which get passed
+        row_count = (len(columns) % 2) + (len(columns) // 2)
+        
+        # each row gets 300 pixels, this is updated after for loop
+        fig_height = row_count * 300
+        
+        plot_titles = [columns[k] for i,k in enumerate(columns)]
+        
+        fig = plt.subplots.make_subplots(rows=row_count, cols=2, subplot_titles=plot_titles)
+        
+        
+        
+        for index, s in enumerate(self.tickers):            
             graph_colors = self.graph_colors[0:len(self.tickers)]            
-            s_df = self.cash_flow[self.cash_flow['ticker'] == s]
-          
-            fig.add_trace(go.Scatter(x=s_df['fiscalDateEnding'],
-                                     y=s_df['operatingCashflow'],
-                                     name=s,
-                                     line=dict(color=graph_colors[st])),
-                          row=1, col=1)
+            s_df = df[df['ticker'] == s]
             
-            fig.add_trace(go.Scatter(x=s_df['fiscalDateEnding'],
-                                     y=s_df['capitalExpenditures'],
-                                     name=s,
-                                     line=dict(color=graph_colors[st])),
-                          row=1, col=2)
-            
-            fig.add_trace(go.Scatter(x=s_df['fiscalDateEnding'],
-                                     y=s_df['netIncome'],
-                                     name=s,
-                                     line=dict(color=graph_colors[st])),
-                          row=2, col=1)
-            
-            fig.add_trace(go.Scatter(x=s_df['fiscalDateEnding'],
-                                     y=s_df['paymentsForRepurchaseOfCommonStock'],
-                                     name=s,
-                                     line=dict(color=graph_colors[st])),
-                          row=2, col=2)
-            
-            
-        fig.update_layout(showlegend=False,template="plotly_dark")
+            for i,k in enumerate(columns,start=1):              
+                ## index is starting at 1, increment by 1 then 
+                # floor of 2//2 = 1, 3//2=1, 4//2 = 2, 5//2 = 2 and so on
+                row_place = (i+1)//2 
+                col_place = 1
+                
+                # we have two columns, place graph on column based on integer even or odd
+                if i % 2 != 0:
+                    col_place = 1
+                else: 
+                    col_place = 2
+                    
+                fig.add_trace(go.Scatter(x=s_df['fiscalDateEnding'],
+                                         y=s_df[k],
+                                         name=s,
+                                         line=dict(color=graph_colors[index])),
+                              row=row_place, col=col_place)
+                    
+        fig.update_layout(showlegend=False,template="plotly_dark",height=fig_height)
         fig.show()
-        
-    
-    def plot_short_term_assets(self):
-        
-        # check to see if the balance sheet data has been pulled for this instance of the object
-        # if not get it before continuing
-        if not hasattr(self, 'balance_sheets'):
-            self.get_balance_sheets()
-        
-        plt.io.renderers.default='browser' 
-        
-        fig = plt.subplots.make_subplots(rows=2, cols=2, subplot_titles=("Total Current Assets",
-                                                            "Cash and Equivalents",
-                                                            "Inventory",
-                                                            "Current Net Receivables"))
-        
-        for st in range(0,len(self.tickers)):
-            
-            s = self.tickers[st]
-            graph_colors = self.graph_colors[0:len(self.tickers)]            
-            s_df = self.balance_sheets[self.balance_sheets['ticker'] == s]
-          
-            
-            fig.add_trace(go.Scatter(x=s_df['fiscalDateEnding'],
-                                     y=s_df['totalCurrentAssets'],
-                                     name=s,
-                                     line=dict(color=graph_colors[st])),
-                          row=1, col=1)
-    
-            fig.add_trace(go.Scatter(x=s_df['fiscalDateEnding'],
-                                     y=s_df['cashAndCashEquivalentsAtCarryingValue'],
-                                     name=s,
-                                     line=dict(color=graph_colors[st])),
-                          row=1, col=2)
-    
-            fig.add_trace(go.Scatter(x=s_df['fiscalDateEnding'],
-                                     y=s_df['inventory'],
-                                     name=s,
-                                     line=dict(color=graph_colors[st])),
-                          row=2, col=1)
-    
-            fig.add_trace(go.Scatter(x=s_df['fiscalDateEnding'], 
-                                     y=s_df['currentNetReceivables'],
-                                     name=s,
-                                     line=dict(color=graph_colors[st])),
-                          row=2, col=2)
-    
-    
-        fig.update_layout(showlegend=False,template="plotly_dark")
-        fig.show()
+                
+                
         
         
     
+        
+#----------------TESTING----------------------    
+    
+stock_symbols = ['AAPL','SHOP','GOOG','NVDA','UAL']
 
+# test balance sheet
+equities = Equities(api_key='296ULICGSB63VL7A',tickers=stock_symbols)
+
+equities.plot_subplots(plot_type='cash_flow')
+equities.plot_subplots(plot_type='balance_sheet')
+
+#bs = equities.get_balance_sheets()
+#print(bs.columns)
+#equities.plot_short_term_assets()
 
 
 #def plot_short_term_assets()
