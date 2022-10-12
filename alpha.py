@@ -36,7 +36,7 @@ def _build_dataframe(data, columns: list = ['value'], set_index: bool = True):
         
     Returns
     -------
-    df : TYPE
+    df : pandas.DataFrame
         Returns a pandas dataframe.
 
     '''
