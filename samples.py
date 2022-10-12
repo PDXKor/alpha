@@ -32,65 +32,9 @@ equities = a.Equities(api_key=api_key, tickers=tickers)
 
 # cashflows
 cf = equities.get_cashflow()
-print(cf.columns)
-
-fig = equities.cashflow_subplot()
-fig.show()
-
-'''
-colors = plt.colors.DEFAULT_PLOTLY_COLORS
-
-# plot operating cash flow
-columns = ['operatingCashflow','netIncome']
-subplot_data = []
-for t in tickers:
-    df = cf[cf['ticker']==t]
-    if not df.empty:
-       
-        subplot = {'subplot': [],
-                   'title': t}
-        
-        for i,v in enumerate(columns):
-            series = df[v]
-            series = series.rename('value')
-            subplot['subplot'].append({'series':series,
-                                       'legend-name':v,
-                                       'line-color':colors[i],
-                                       },
-                                      )
-        subplot_data.append(subplot)
-        
-#print(subplot_data)
-fig = a.alpha_subplots(subplot_data)
-fig.show() 
-
-'''
-        
-'''
-# plot net income
-cf = equities.get_cashflow()
-
-subplot_data = []
-for t in tickers:
-    df = cf[cf['ticker']==t]
-    if not df.empty:
-        series = df[['operatingCashflow','netIncome']]
-        series = series.rename({'netIncome':'value'},axis='columns')
-        subplot = {'subplot': [{'series': series,
-                                'legend-name': t}],
-                   'title': t}
-        subplot_data.append(subplot)
-        
-fig = a.alpha_subplots(subplot_data,title='Net Income')
-fig.show() 
-'''  
-
-
-
 
 # get time series daily adjusted
-#tsa_df = equities.get_time_series_daily_adjusted()
-
+tsa_df = equities.get_time_series_daily_adjusted()
 
 
 # ---- EQUITY SUBPLOTS ----
@@ -100,8 +44,8 @@ fig = equities.daily_adjusted_subplot(start_end_dates=start_end_dates, output_si
 fig.show()
 
 
-
-
+fig = equities.cashflow_subplot()
+fig.show()
 
 
 
