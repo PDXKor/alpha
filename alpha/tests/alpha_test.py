@@ -13,7 +13,8 @@ Description:
 """
 
 import unittest
-import alpha as a
+from core import core_api as a
+from core import subplots
 
 # TODO - pass api_key as an arg
 
@@ -78,7 +79,7 @@ class TestAlpha(unittest.TestCase):
         
     def test_alpha_subplot_rendererror(self):
         with self.assertRaises(ValueError):
-            a.alpha_subplots(data='',render_type='error')
+            subplots.build_subplots(data='',render_type='error')
     
         
 

@@ -6,7 +6,11 @@ A python module for interacting with alpha vantage and building basic plots with
 ***
 Construct the equities class like so:
 
+
 ```python
+
+from alpha import core_api as a
+
 api_key = 'your premium api key'
 
 tickers = ['AMZN', 'GOOG', 'AAPL','VB']
